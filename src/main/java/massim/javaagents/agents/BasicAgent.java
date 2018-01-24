@@ -32,6 +32,8 @@ public class BasicAgent extends Agent {
         // return action
 
         if (getStepNumber() > 1) {
+
+            
             double dist = CustomUtils.distance(AP.getSelfInfo().getLat(),
                     AP.getSelfInfo().getLon(),
                     AP.getShops().get(0).getShopLat(),
