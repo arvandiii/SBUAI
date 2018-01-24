@@ -2,10 +2,7 @@ package massim.javaagents.agents;
 
 import eis.iilang.Action;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Queue;
+import java.util.*;
 
 public class SharedData {
     private static SharedData instance = null;
@@ -19,9 +16,9 @@ public class SharedData {
         return instance;
     }
 
-    private Map<String, Queue<Action>> actions = new HashMap<>();
+    private Map<String, Queue<ArrayList<String>>> actions = new HashMap<>();
 
-    public Queue<Action> getMyActions(String key){
+    public Queue<ArrayList<String>> getMyActions(String key){
         return actions.get(key);
     }
 }
