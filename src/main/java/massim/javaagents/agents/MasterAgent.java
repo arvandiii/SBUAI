@@ -5,6 +5,11 @@ import eis.iilang.Identifier;
 import eis.iilang.Percept;
 import massim.javaagents.MailService;
 import massim.javaagents.percept.AgentPercepts;
+import massim.javaagents.percept.entity;
+import massim.javaagents.percept.shop;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
 
 
 public class MasterAgent extends Agent {
@@ -17,18 +22,52 @@ public class MasterAgent extends Agent {
     }
 
     @Override
-    public void handlePercept(Percept percept) {}
+    public void handlePercept(Percept percept) {
+    }
 
     @Override
-    public void handleMessage(Percept message, String sender) {}
+    public void handleMessage(Percept message, String sender) {
+    }
 
     @Override
     public Action step() {
         makePerceptObjects(AP);
         SharedData sharedData = SharedData.getSharedData();
 
-        System.out.println("im master");
 
+        if (getStepNumber() == 1) {
+            ArrayList<String> agents = new ArrayList<>();
+
+            for (int i = 0; i < AP.getEntities().size(); i++) {
+                entity e = AP.getEntities().get(i);
+                if (e.getTeam().equals(AP.getSelfInfo().getTeam())) {
+                    agents.add(e.getName());
+                }
+            }
+
+            sharedData.initActions(agents);
+
+            shop shop0 = AP.getShops().get(0);
+            shop shop1 = AP.getShops().get(1);
+
+            ArrayList<String> firstGoto = new ArrayList<>();
+            firstGoto.add("goto");
+            firstGoto.add(shop0.getShopLat() + "");
+            firstGoto.add(shop0.getShopLon() + "");
+
+            ArrayList<String> secondGoto = new ArrayList<>();
+            secondGoto.add("goto");
+            secondGoto.add(shop1.getShopLat() + "");
+            secondGoto.add(shop1.getShopLon() + "");
+
+
+            for (String a : agents) {
+                sharedData.addNewAction(a, firstGoto);
+                sharedData.addNewAction(a, secondGoto);
+            }
+            System.out.println("im master");
+
+        }
         // find jobs
         // evaluate jobs
         // for jobs not taken => for agents not doing anything and not drone => find appropriate => assign this job
@@ -73,6 +112,6 @@ public class MasterAgent extends Agent {
 //                    Parameter param = p.getParameters().getFirst();
 //                    if(param instanceof Identifier) say("Step " + ((Identifier) param).getValue());
 //        });
-        return new Action("goto", new Identifier("shop1"));
+        return new Action("skip");
     }
 }

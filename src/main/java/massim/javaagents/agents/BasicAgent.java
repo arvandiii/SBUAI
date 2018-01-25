@@ -30,37 +30,52 @@ public class BasicAgent extends Agent {
     public Action step() {
         makePerceptObjects(AP);
 
+        SharedData sharedData = SharedData.getSharedData();
+        Queue<ArrayList<String>> actions = sharedData.getMyActions(AP.getSelfInfo().getName());
 
-        // if myLastAction is done pop
-        // sharedData.getMyAction(myName)
-        // return action
+        System.out.println(AP.getSelfInfo().getName() + "\t" + actions);
+        if (actions == null || actions.size() == 0)
+            return new Action("skip");
 
 
-        if (getStepNumber() > 0) {
-            //        SharedData sharedData = SharedData.getSharedData();
-//        Queue<ArrayList<String>> actions = sharedData.getMyActions(AP.getSelfInfo().getName());
+        // check if last action should remove from queue
+        ArrayList<String> lastAction = actions.peek();
+        String lastActionName = lastAction.get(0);
 
-//        ArrayList<String> lastAction = actions.peek();
-//        if (lastAction.get(0).equals("goto")) {
-            double dist = CustomUtils.distance(AP.getSelfInfo().getLat(),
-                    AP.getSelfInfo().getLon(),
-                    AP.getShops().get(0).getShopLat(),
-                    AP.getShops().get(0).getShopLon(),
-                    'K');
-
-            if (dist < 0.003) {
-                System.out.println("residam residam");
-            }
-
-            System.out.println("im not master " + dist + " " + AP.getSelfInfo().getLastAction());
-//        }
-            LinkedList<Parameter> p = new LinkedList<>();
-            p.add(new Identifier(AP.getShops().get(0).getShopLat() + ""));
-            p.add(new Identifier(AP.getShops().get(0).getShopLon() + ""));
-
-            return new Action("goto", p);
+        switch (lastActionName) {
+            case "goto":
+                double dist = CustomUtils.distance(AP.getSelfInfo().getLat(),
+                        AP.getSelfInfo().getLon(),
+                        Double.parseDouble(lastAction.get(1)),
+                        Double.parseDouble(lastAction.get(2)),
+                        'K');
+                if (dist < 0.003) {
+                    actions.poll();
+                }
+                break;
+            case "":
+                break;
         }
 
-        return new Action("skip");
+
+        if (actions.size() == 0)
+            return new Action("skip");
+
+
+        // do action
+        ArrayList<String> nextAction = actions.peek();
+        String nextActionName = nextAction.get(0);
+
+        switch (nextActionName) {
+            case "goto":
+                LinkedList<Parameter> p = new LinkedList<>();
+                p.add(new Identifier(nextAction.get(1)));
+                p.add(new Identifier(nextAction.get(2)));
+                return new Action("goto", p);
+            default:
+                return new Action("skip");
+        }
+
+
     }
 }
