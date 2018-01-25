@@ -41,6 +41,7 @@ public class MasterAgent extends Agent {
             for (int i = 0; i < AP.getEntities().size(); i++) {
                 entity e = AP.getEntities().get(i);
                 if (e.getTeam().equals(AP.getSelfInfo().getTeam())) {
+                    System.out.println(e.getName() + e.getRole());
                     agents.add(e.getName());
                 }
             }
@@ -49,6 +50,9 @@ public class MasterAgent extends Agent {
 
             shop shop0 = AP.getShops().get(0);
             shop shop1 = AP.getShops().get(1);
+
+            ArrayList<String> research = new ArrayList<>();
+            research.add("research");
 
             ArrayList<String> firstGoto = new ArrayList<>();
             firstGoto.add("goto");
@@ -62,8 +66,16 @@ public class MasterAgent extends Agent {
 
 
             for (String a : agents) {
-                sharedData.addNewAction(a, firstGoto);
-                sharedData.addNewAction(a, secondGoto);
+                switch (a) {
+                    case "drone":
+                        sharedData.addNewAction(a, research);
+                        break;
+                    default:
+                        sharedData.addNewAction(a, firstGoto);
+                        sharedData.addNewAction(a, secondGoto);
+                }
+
+
             }
             System.out.println("im master");
 

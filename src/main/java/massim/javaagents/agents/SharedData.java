@@ -18,6 +18,11 @@ public class SharedData {
     }
 
     private Map<String, Queue<ArrayList<String>>> actions = new HashMap<>();
+    private ArrayList<ArrayList<String>> resourceNodes = new ArrayList<>();
+
+    public void addNewResourceNode(ArrayList<String > resourceNode) {
+        resourceNodes.add(resourceNode);
+    }
 
     public void initActions(ArrayList<String> agents) {
         for (String a : agents) {

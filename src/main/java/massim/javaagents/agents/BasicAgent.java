@@ -30,6 +30,8 @@ public class BasicAgent extends Agent {
     public Action step() {
         makePerceptObjects(AP);
 
+        // TODO if resourceNode is seen save it in shared data
+
         SharedData sharedData = SharedData.getSharedData();
         Queue<ArrayList<String>> actions = sharedData.getMyActions(AP.getSelfInfo().getName());
 
@@ -53,7 +55,9 @@ public class BasicAgent extends Agent {
                     actions.poll();
                 }
                 break;
-            case "":
+            case "research":
+                break;
+            default:
                 break;
         }
 
@@ -72,6 +76,8 @@ public class BasicAgent extends Agent {
                 p.add(new Identifier(nextAction.get(1)));
                 p.add(new Identifier(nextAction.get(2)));
                 return new Action("goto", p);
+            case "research":
+                // TODO go to a place not visited
             default:
                 return new Action("skip");
         }
