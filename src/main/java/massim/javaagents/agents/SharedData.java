@@ -1,6 +1,7 @@
 package massim.javaagents.agents;
 
 import eis.iilang.Action;
+import massim.javaagents.percept.job;
 
 import java.util.*;
 
@@ -20,7 +21,7 @@ public class SharedData {
     private Map<String, Queue<ArrayList<String>>> actions = new HashMap<>();
     private ArrayList<ArrayList<String>> resourceNodes = new ArrayList<>();
 
-    public void addNewResourceNode(ArrayList<String > resourceNode) {
+    public void addNewResourceNode(ArrayList<String> resourceNode) {
         resourceNodes.add(resourceNode);
     }
 
@@ -36,5 +37,18 @@ public class SharedData {
 
     public Queue<ArrayList<String>> getMyActions(String key) {
         return actions.get(key);
+    }
+
+    private Map<String, job> jobs = new HashMap<>();
+
+    public void takeJob(job j){
+        jobs.put(j.getJobID(), j);
+    }
+
+    public boolean isJobTaken(job j) {
+        if (jobs.get(j.getJobID()) == null) {
+            return false;
+        }
+        return true;
     }
 }

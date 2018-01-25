@@ -4,12 +4,9 @@ import eis.iilang.Action;
 import eis.iilang.Identifier;
 import eis.iilang.Percept;
 import massim.javaagents.MailService;
-import massim.javaagents.percept.AgentPercepts;
-import massim.javaagents.percept.entity;
-import massim.javaagents.percept.shop;
+import massim.javaagents.percept.*;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.*;
 
 
 public class MasterAgent extends Agent {
@@ -80,7 +77,65 @@ public class MasterAgent extends Agent {
             System.out.println("im master");
 
         }
-        // find jobs
+
+        if (getStepNumber() > 1) {
+
+            ArrayList<entity> agents = new ArrayList<>();
+
+            for (int i = 0; i < AP.getEntities().size(); i++) {
+                entity e = AP.getEntities().get(i);
+                if (e.getTeam().equals(AP.getSelfInfo().getTeam())) {
+                    agents.add(e);
+                }
+            }
+
+
+            List<job> jobs = AP.getJobs(); // find jobs
+
+            LinkedList<job> notTakenJobs = new LinkedList<>();
+            for (job j : jobs) {
+                if (!sharedData.isJobTaken(j)) {
+                    notTakenJobs.add(j);
+                }
+            }
+
+            System.out.println(notTakenJobs);
+
+//            if (notTakenJobs.size() > 0)
+//                sharedData.takeJob(notTakenJobs.get(0));
+
+            LinkedList<Pair<job, Integer>> evaluatedJobs = new LinkedList<>();
+
+            for (job j : notTakenJobs) {
+                int end = j.getJobEnd();
+                int reward = j.getJobReward();
+                int volume = 0;
+                List<Pair<String, Integer>> requireds = j.getJobRequireds();
+                for (int i = 0; i < requireds.size(); i++) {
+                    for (int k = 0; k < AP.getItemsInEnv().size(); k++) {
+                        if (AP.getItemsInEnv().get(k).getName().equals(requireds.get(i).getLeft())) {
+                            volume += requireds.get(i).getRight() * AP.getItemsInEnv().get(k).getVolume();
+                        }
+                    }
+                }
+                int A = 1;
+                int B = 10;
+                int C = 15;
+                int valuation = A * end + B * reward - C * volume;
+                System.out.println(j.getJobID() + "\t" + end + "\t" + reward + "\t" + volume + "\t" + valuation);
+                evaluatedJobs.add(new Pair<>(j, valuation));
+            }
+
+            for (entity a : agents) {
+                if (!a.getRole().equals("drone") &&
+                        sharedData.getMyActions(a.getName()).size() == 0) {
+                    // todo assign best job for him
+                }
+            }
+
+        }
+
+
         // evaluate jobs
         // for jobs not taken => for agents not doing anything and not drone => find appropriate => assign this job
 
