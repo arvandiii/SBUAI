@@ -15,8 +15,8 @@ public class Main {
 
     public static void main( String[] args ) {
 
-        String configDir = "/Users/alireza/w/SBUAIProject/massim-massim-2017-1.2/javaagents/conf";
-
+//        String configDir = "/Users/alireza/w/SBUAIProject/massim-massim-2017-1.2/javaagents/conf";
+        String configDir = "D:\\Desktop\\SBUAIProject-master\\SBUAIProject-master\\massim-massim-2017-1.2\\javaagents\\conf";
         System.out.println("PHASE 1: INSTANTIATING SCHEDULER");
         if (args.length != 0) configDir = args[0];
         else {

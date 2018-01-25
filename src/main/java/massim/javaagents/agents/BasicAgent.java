@@ -3,6 +3,7 @@ package massim.javaagents.agents;
 import eis.iilang.*;
 import massim.javaagents.MailService;
 import massim.javaagents.percept.AgentPercepts;
+import massim.javaagents.percept.resourceNode;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -30,9 +31,15 @@ public class BasicAgent extends Agent {
     public Action step() {
         makePerceptObjects(AP);
 
-        // TODO if resourceNode is seen save it in shared data
-
         SharedData sharedData = SharedData.getSharedData();
+
+        // TODO if resourceNode is seen save it in shared data
+        if (AP.getResourceNodes().size() != 0) {
+            for (resourceNode r : AP.getResourceNodes()) {
+                sharedData.addNewResourceNode(r);
+            }
+        }
+
         Queue<ArrayList<String>> actions = sharedData.getMyActions(AP.getSelfInfo().getName());
 
         System.out.println(AP.getSelfInfo().getName() + "\t" + actions);
@@ -72,6 +79,7 @@ public class BasicAgent extends Agent {
 
         switch (nextActionName) {
             case "goto":
+                // TODO if charge not enough recharge
                 LinkedList<Parameter> p = new LinkedList<>();
                 p.add(new Identifier(nextAction.get(1)));
                 p.add(new Identifier(nextAction.get(2)));

@@ -2,6 +2,7 @@ package massim.javaagents.agents;
 
 import eis.iilang.Action;
 import massim.javaagents.percept.job;
+import massim.javaagents.percept.resourceNode;
 
 import java.util.*;
 
@@ -19,10 +20,14 @@ public class SharedData {
     }
 
     private Map<String, Queue<ArrayList<String>>> actions = new HashMap<>();
-    private ArrayList<ArrayList<String>> resourceNodes = new ArrayList<>();
+    private HashSet<resourceNode> resourceNodes = new HashSet<>();
 
-    public void addNewResourceNode(ArrayList<String> resourceNode) {
-        resourceNodes.add(resourceNode);
+    public void addNewResourceNode(resourceNode resource) {
+        resourceNodes.add(resource);
+    }
+
+    public HashSet<resourceNode> getResourceNodes() {
+        return resourceNodes;
     }
 
     public void initActions(ArrayList<String> agents) {
