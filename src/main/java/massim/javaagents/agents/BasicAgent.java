@@ -3,6 +3,7 @@ package massim.javaagents.agents;
 import eis.iilang.*;
 import massim.javaagents.MailService;
 import massim.javaagents.percept.AgentPercepts;
+import massim.javaagents.percept.Pair;
 import massim.javaagents.percept.resourceNode;
 
 import java.util.ArrayList;
@@ -13,6 +14,14 @@ import java.util.Queue;
 public class BasicAgent extends Agent {
 
     AgentPercepts AP = new AgentPercepts();
+
+    Double[] researchCoordinates = new Double[2];
+
+    double minLon = 2.26;
+    double maxLon = 2.41;
+    double minLat = 48.82;
+    double maxLat = 48.90;
+
 
     public BasicAgent(String name, MailService mailbox) {
         super(name, mailbox);
@@ -63,6 +72,7 @@ public class BasicAgent extends Agent {
                 }
                 break;
             case "research":
+                researchCoordinates = calculateNextResearch();
                 break;
             default:
                 break;
@@ -80,16 +90,32 @@ public class BasicAgent extends Agent {
         switch (nextActionName) {
             case "goto":
                 // TODO if charge not enough recharge
+
+
+
                 LinkedList<Parameter> p = new LinkedList<>();
                 p.add(new Identifier(nextAction.get(1)));
                 p.add(new Identifier(nextAction.get(2)));
                 return new Action("goto", p);
             case "research":
                 // TODO go to a place not visited
+                LinkedList<Parameter> parameters = new LinkedList<>();
+                parameters.add(new Identifier(researchCoordinates[0].toString()));
+                parameters.add(new Identifier(researchCoordinates[1].toString()));
+                return new Action("goto", parameters);
             default:
                 return new Action("skip");
         }
 
 
+    }
+
+    private Double[] calculateNextResearch() {
+        researchCoordinates[0] = AP.getSelfInfo().getLat();
+        researchCoordinates[1] = AP.getSelfInfo().getLon();
+
+
+
+        return null;
     }
 }
