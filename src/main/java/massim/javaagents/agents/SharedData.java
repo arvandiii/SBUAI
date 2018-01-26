@@ -1,8 +1,10 @@
 package massim.javaagents.agents;
 
 import eis.iilang.Action;
+import massim.javaagents.percept.Pair;
 import massim.javaagents.percept.job;
 import massim.javaagents.percept.resourceNode;
+import massim.javaagents.percept.role;
 
 import java.util.*;
 
@@ -46,7 +48,7 @@ public class SharedData {
 
     private Map<String, job> jobs = new HashMap<>();
 
-    public void takeJob(job j){
+    public void takeJob(job j) {
         jobs.put(j.getJobID(), j);
     }
 
@@ -55,5 +57,27 @@ public class SharedData {
             return false;
         }
         return true;
+    }
+
+    private LinkedList<Pair<String, role>> roles = new LinkedList<>();
+
+    public void addMyRole(Pair<String, role> myRole) {
+        roles.add(myRole);
+    }
+
+    public role getRole(String myName) {
+        for (Pair<String, role> nr : roles) {
+            if (nr.getLeft().equals(myName)) {
+                return nr.getRight();
+            }
+        }
+        return null;
+    }
+
+    public ArrayList<Object> getItemSources(String itemName){
+        // array [string (shop || resourceNode), Double lat, Double lon, Integer Volume]
+        // shop ha va resourceNode ha ro begard vase in item
+        // todo
+        return  null;
     }
 }
