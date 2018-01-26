@@ -138,7 +138,6 @@ public class MasterAgent extends Agent {
                     items.add(new Pair<>(item.getLeft(), sources));
                 }
 
-                // behtarin agent baraye in kar
 
                 for (entity a : agents) {
                     if (sharedData.getMyActions(a.getName()).size() == 0) {
@@ -157,12 +156,11 @@ public class MasterAgent extends Agent {
                             }
                         }
                         if (best != null) {
-
                             if (best.getRight().get(0).equals("resourceNode")) {
                                 ArrayList<String> gotoResourceNodeAction = new ArrayList<>();
                                 gotoResourceNodeAction.add("goto");
-                                gotoResourceNodeAction.add(best.getRight().get(1)+"");
-                                gotoResourceNodeAction.add(best.getRight().get(2)+"");
+                                gotoResourceNodeAction.add(best.getRight().get(1) + "");
+                                gotoResourceNodeAction.add(best.getRight().get(2) + "");
                                 sharedData.addNewAction(a.getName(), gotoResourceNodeAction);
                                 ArrayList<String> gatherAction = new ArrayList<>();
                                 gatherAction.add("gather");
@@ -177,9 +175,28 @@ public class MasterAgent extends Agent {
                                 sharedData.takeJob(ej.getLeft());
                                 break;
                             } else if (best.getRight().get(0).equals("shop")) {
-
+                                ArrayList<String> gotoResourceNodeAction = new ArrayList<>();
+                                gotoResourceNodeAction.add("goto");
+                                gotoResourceNodeAction.add(best.getRight().get(1) + "");
+                                gotoResourceNodeAction.add(best.getRight().get(2) + "");
+                                sharedData.addNewAction(a.getName(), gotoResourceNodeAction);
+                                ArrayList<String> buyAction = new ArrayList<>();
+                                buyAction.add("buy");
+                                buyAction.add(best.getLeft());
+                                buyAction.add(best.getRight().get(3) + "");
+                                sharedData.addNewAction(a.getName(), buyAction);
+                                ArrayList<String> gotoStorageAction = new ArrayList<>();
+                                gotoStorageAction.add("goto");
+                                sharedData.addNewAction(a.getName(), gotoStorageAction);
+                                ArrayList<String> deliverJob = new ArrayList<>();
+                                deliverJob.add("deliver_job");
+                                deliverJob.add(ej.getLeft().getJobID());
+                                sharedData.addNewAction(a.getName(), deliverJob);
+                                sharedData.takeJob(ej.getLeft());
+                                break;
                             }
-
+                        } else {
+                            // todo goto nearest resource node gather and put them in a storage
                         }
 
 
