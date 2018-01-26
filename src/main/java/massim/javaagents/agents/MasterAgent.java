@@ -12,6 +12,8 @@ import java.util.*;
 public class MasterAgent extends Agent {
 
 
+    boolean oneDroneIsSearching = false;
+
     AgentPercepts AP = new AgentPercepts();
 
     public MasterAgent(String name, MailService mailbox) {
@@ -32,7 +34,7 @@ public class MasterAgent extends Agent {
         SharedData sharedData = SharedData.getSharedData();
 
 
-        if (getStepNumber() == 1) {
+        if (getStepNumber() >= 1) {
             ArrayList<String> agents = new ArrayList<>();
 
             for (int i = 0; i < AP.getEntities().size(); i++) {
@@ -65,8 +67,11 @@ public class MasterAgent extends Agent {
             for (String a : agents) {
                 switch (a) {
                     case "drone":
-                        sharedData.addNewAction(a, research);
-                        break;
+                        if (!oneDroneIsSearching) {
+                            sharedData.addNewAction(a, research);
+                            oneDroneIsSearching = true;
+                            break;
+                        }
                     default:
                         sharedData.addNewAction(a, firstGoto);
                         sharedData.addNewAction(a, secondGoto);
@@ -101,20 +106,20 @@ public class MasterAgent extends Agent {
 
             System.out.println(notTakenJobs);
 
-//            if (notTakenJobs.size() > 0)
-//                sharedData.takeJob(notTakenJobs.get(0));
-
-            LinkedList<Pair<job, Integer>> evaluatedJobs = new LinkedList<>();
+            LinkedList<Pair<job, Pair<Integer, LinkedList<Pair<String, Integer>>>>> evaluatedJobs = new LinkedList<>();
 
             for (job j : notTakenJobs) {
                 int end = j.getJobEnd();
                 int reward = j.getJobReward();
                 int volume = 0;
                 List<Pair<String, Integer>> requireds = j.getJobRequireds();
+                LinkedList<Pair<String, Integer>> itemWithVolume = new LinkedList<>();
                 for (int i = 0; i < requireds.size(); i++) {
                     for (int k = 0; k < AP.getItemsInEnv().size(); k++) {
                         if (AP.getItemsInEnv().get(k).getName().equals(requireds.get(i).getLeft())) {
-                            volume += requireds.get(i).getRight() * AP.getItemsInEnv().get(k).getVolume();
+                            int size = requireds.get(i).getRight() * AP.getItemsInEnv().get(k).getVolume();
+                            volume += size;
+                            itemWithVolume.add(new Pair<>(requireds.get(i).getLeft(), size));
                         }
                     }
                 }
@@ -123,20 +128,68 @@ public class MasterAgent extends Agent {
                 int C = 15;
                 int valuation = A * end + B * reward - C * volume;
                 System.out.println(j.getJobID() + "\t" + end + "\t" + reward + "\t" + volume + "\t" + valuation);
-                evaluatedJobs.add(new Pair<>(j, valuation));
+                evaluatedJobs.add(new Pair<>(j, new Pair<>(valuation, itemWithVolume)));
             }
 
-            for (entity a : agents) {
-                if (!a.getRole().equals("drone") &&
-                        sharedData.getMyActions(a.getName()).size() == 0) {
-                    // todo assign best job for him
+            for (Pair<job, Pair<Integer, LinkedList<Pair<String, Integer>>>> ej : evaluatedJobs) {
+                ArrayList<Pair<String, ArrayList<Object>>> items = new ArrayList<>();
+                for (Pair<String, Integer> item : ej.getRight().getRight()) {
+                    ArrayList<Object> sources = sharedData.getItemSources(item.getLeft());
+                    items.add(new Pair<>(item.getLeft(), sources));
+                }
+
+                // behtarin agent baraye in kar
+
+                for (entity a : agents) {
+                    if (sharedData.getMyActions(a.getName()).size() == 0) {
+                        role r = sharedData.getRole(a.getName());
+                        int load = r.getLoad();
+                        int speed = r.getSpeed();
+
+                        double minDist = Double.MAX_VALUE;
+                        Pair<String, ArrayList<Object>> best = null;
+                        for (Pair<String, ArrayList<Object>> i : items) {
+                            double dist = CustomUtils.distance(a.getLat(), a.getLon(),
+                                    (Double) i.getRight().get(1), (Double) i.getRight().get(2), 'K');
+                            if (dist < minDist && load >= (Integer) i.getRight().get(3)) {
+                                minDist = dist;
+                                best = i;
+                            }
+                        }
+                        if (best != null) {
+
+                            if (best.getRight().get(0).equals("resourceNode")) {
+                                ArrayList<String> gotoResourceNodeAction = new ArrayList<>();
+                                gotoResourceNodeAction.add("goto");
+                                gotoResourceNodeAction.add(best.getRight().get(1)+"");
+                                gotoResourceNodeAction.add(best.getRight().get(2)+"");
+                                sharedData.addNewAction(a.getName(), gotoResourceNodeAction);
+                                ArrayList<String> gatherAction = new ArrayList<>();
+                                gatherAction.add("gather");
+                                sharedData.addNewAction(a.getName(), gatherAction);
+                                ArrayList<String> gotoStorageAction = new ArrayList<>();
+                                gotoStorageAction.add("goto");
+                                sharedData.addNewAction(a.getName(), gotoStorageAction);
+                                ArrayList<String> deliverJob = new ArrayList<>();
+                                deliverJob.add("deliver_job");
+                                deliverJob.add(ej.getLeft().getJobID());
+                                sharedData.addNewAction(a.getName(), deliverJob);
+                                sharedData.takeJob(ej.getLeft());
+                                break;
+                            } else if (best.getRight().get(0).equals("shop")) {
+
+                            }
+
+                        }
+
+
+                    }
                 }
             }
 
         }
 
 
-        // evaluate jobs
         // for jobs not taken => for agents not doing anything and not drone => find appropriate => assign this job
 
         // assign job => resource || shop || storage => do best
@@ -145,40 +198,6 @@ public class MasterAgent extends Agent {
 
         // for agents not doing anything => go to resource nodes and store in storage and save data in shared data
 
-        // if job assigned to me =>
-        // if charge => do it
-        // else => if chargeStation || solarCharge => do best
-        // else => skip
-
-//        System.out.println(AP.getSelfRole());
-//        System.out.println(AP.getSelfInfo().getName() + "\t" + sharedData.DONE);
-//        if (getStepNumber() == 1 && !sharedData.DONE) {
-//            for (int i = 0; i < AP.getEntities().size(); i++) {
-//                entity e = AP.getEntities().get(i);
-//                System.out.println(e.getTeam());
-//                if (e.getTeam().equals(AP.getSelfInfo().getTeam())) {
-//
-//                }
-//            }
-//            sharedData.DONE = true;
-//        }
-
-//        System.out.println(AP.getSelfInfo().getCharge());
-//        System.out.println(AP.getSelfInfo().getRole());
-//        System.out.println(AP.getSelfInfo().getTeam());
-//        System.out.println(AP.getSelfInfo().getLat());
-//        System.out.println(AP.getSelfInfo().getLon());
-
-//        for (int i = 0; i < percepts.size(); i++) {
-//            System.out.println(percepts);
-//        }
-//        percepts.stream()
-//                .filter(p -> p.getName().equals("step"))
-//                .findAny()
-//                .ifPresent(p -> {
-//                    Parameter param = p.getParameters().getFirst();
-//                    if(param instanceof Identifier) say("Step " + ((Identifier) param).getValue());
-//        });
         return new Action("skip");
     }
 }
