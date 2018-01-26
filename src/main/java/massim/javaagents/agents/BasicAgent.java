@@ -42,6 +42,11 @@ public class BasicAgent extends Agent {
 
         SharedData sharedData = SharedData.getSharedData();
 
+        if (getStepNumber() == 0) {
+            sharedData.addMyRole(new Pair<>(AP.getSelfInfo().getName(), AP.getSelfRole()));
+        }
+
+
         // TODO if resourceNode is seen save it in shared data
         if (AP.getResourceNodes().size() != 0) {
             for (resourceNode r : AP.getResourceNodes()) {
