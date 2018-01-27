@@ -103,11 +103,23 @@ public class BasicAgent extends Agent {
 
         switch (nextActionName) {
             case "goto":
-                // TODO if charge not enough recharge
-                LinkedList<Parameter> p = new LinkedList<>();
-                p.add(new Identifier(nextAction.get(1)));
-                p.add(new Identifier(nextAction.get(2)));
-                return new Action("goto", p);
+
+                double disance = CustomUtils.distance(AP.getSelfInfo().getLat(), AP.getSelfInfo().getLon()
+                        , Double.parseDouble(nextAction.get(1)), Double.parseDouble(nextAction.get(2)), 'K');
+                double step = disance / (sharedData.getRole(AP.getSelfInfo().getName()).getSpeed() * 0.2);
+
+                System.out.println(AP.getSelfInfo().getName() + " enghad stepe dg monde ta beresam " + Math.ceil(step));
+                System.out.println(AP.getSelfInfo().getName() + " enghad charge daram " + AP.getSelfInfo().getCharge());
+
+                if (AP.getSelfInfo().getCharge() > (step * 10) * 2) {
+                    LinkedList<Parameter> p = new LinkedList<>();
+                    p.add(new Identifier(nextAction.get(1)));
+                    p.add(new Identifier(nextAction.get(2)));
+                    return new Action("goto", p);
+                }
+
+                // todo bere charge kone
+
             case "buy":
                 LinkedList<Parameter> pbuy = new LinkedList<>();
                 pbuy.add(new Identifier(nextAction.get(1)));
