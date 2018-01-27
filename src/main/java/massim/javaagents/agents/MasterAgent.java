@@ -138,68 +138,66 @@ public class MasterAgent extends Agent {
                     items.add(new Pair<>(item.getLeft(), sources));
                 }
 
+                if (items.size() == 1) {
 
-                for (entity a : agents) {
-                    if (sharedData.getMyActions(a.getName()).size() == 0) {
-                        role r = sharedData.getRole(a.getName());
-                        int load = r.getLoad();
-                        int speed = r.getSpeed();
+                    for (entity a : agents) {
+                        if (sharedData.getMyActions(a.getName()).size() == 0) {
+                            role r = sharedData.getRole(a.getName());
+                            int load = r.getLoad();
+                            int speed = r.getSpeed();
 
-                        double minDist = Double.MAX_VALUE;
-                        Pair<String, ArrayList<Object>> best = null;
-                        for (Pair<String, ArrayList<Object>> i : items) {
-                            double dist = CustomUtils.distance(a.getLat(), a.getLon(),
-                                    (Double) i.getRight().get(1), (Double) i.getRight().get(2), 'K');
-                            if (dist < minDist && load >= (Integer) i.getRight().get(3)) {
-                                minDist = dist;
-                                best = i;
+                            double minDist = Double.MAX_VALUE;
+                            Pair<String, ArrayList<Object>> best = null;
+                            for (Pair<String, ArrayList<Object>> i : items) {
+                                double dist = CustomUtils.distance(a.getLat(), a.getLon(),
+                                        (Double) i.getRight().get(1), (Double) i.getRight().get(2), 'K');
+                                if (dist < minDist && load >= (Integer) i.getRight().get(3)) {
+                                    minDist = dist;
+                                    best = i;
+                                }
+                            }
+                            if (best != null) {
+                                if (best.getRight().get(0).equals("resourceNode")) {
+                                    ArrayList<String> gotoResourceNodeAction = new ArrayList<>();
+                                    gotoResourceNodeAction.add("goto");
+                                    gotoResourceNodeAction.add(best.getRight().get(1) + "");
+                                    gotoResourceNodeAction.add(best.getRight().get(2) + "");
+                                    sharedData.addNewAction(a.getName(), gotoResourceNodeAction);
+                                    ArrayList<String> gatherAction = new ArrayList<>();
+                                    gatherAction.add("gather");
+                                    sharedData.addNewAction(a.getName(), gatherAction);
+                                    ArrayList<String> gotoStorageAction = new ArrayList<>();
+                                    gotoStorageAction.add("goto");
+                                    sharedData.addNewAction(a.getName(), gotoStorageAction);
+                                    ArrayList<String> deliverJob = new ArrayList<>();
+                                    deliverJob.add("deliver_job");
+                                    deliverJob.add(ej.getLeft().getJobID());
+                                    sharedData.addNewAction(a.getName(), deliverJob);
+                                    sharedData.takeJob(ej.getLeft());
+                                    break;
+                                } else if (best.getRight().get(0).equals("shop")) {
+                                    ArrayList<String> gotoResourceNodeAction = new ArrayList<>();
+                                    gotoResourceNodeAction.add("goto");
+                                    gotoResourceNodeAction.add(best.getRight().get(1) + "");
+                                    gotoResourceNodeAction.add(best.getRight().get(2) + "");
+                                    sharedData.addNewAction(a.getName(), gotoResourceNodeAction);
+                                    ArrayList<String> buyAction = new ArrayList<>();
+                                    buyAction.add("buy");
+                                    buyAction.add(best.getLeft());
+                                    buyAction.add(best.getRight().get(3) + "");
+                                    sharedData.addNewAction(a.getName(), buyAction);
+                                    ArrayList<String> gotoStorageAction = new ArrayList<>();
+                                    gotoStorageAction.add("goto");
+                                    sharedData.addNewAction(a.getName(), gotoStorageAction);
+                                    ArrayList<String> deliverJob = new ArrayList<>();
+                                    deliverJob.add("deliver_job");
+                                    deliverJob.add(ej.getLeft().getJobID());
+                                    sharedData.addNewAction(a.getName(), deliverJob);
+                                    sharedData.takeJob(ej.getLeft());
+                                    break;
+                                }
                             }
                         }
-                        if (best != null) {
-                            if (best.getRight().get(0).equals("resourceNode")) {
-                                ArrayList<String> gotoResourceNodeAction = new ArrayList<>();
-                                gotoResourceNodeAction.add("goto");
-                                gotoResourceNodeAction.add(best.getRight().get(1) + "");
-                                gotoResourceNodeAction.add(best.getRight().get(2) + "");
-                                sharedData.addNewAction(a.getName(), gotoResourceNodeAction);
-                                ArrayList<String> gatherAction = new ArrayList<>();
-                                gatherAction.add("gather");
-                                sharedData.addNewAction(a.getName(), gatherAction);
-                                ArrayList<String> gotoStorageAction = new ArrayList<>();
-                                gotoStorageAction.add("goto");
-                                sharedData.addNewAction(a.getName(), gotoStorageAction);
-                                ArrayList<String> deliverJob = new ArrayList<>();
-                                deliverJob.add("deliver_job");
-                                deliverJob.add(ej.getLeft().getJobID());
-                                sharedData.addNewAction(a.getName(), deliverJob);
-                                sharedData.takeJob(ej.getLeft());
-                                break;
-                            } else if (best.getRight().get(0).equals("shop")) {
-                                ArrayList<String> gotoResourceNodeAction = new ArrayList<>();
-                                gotoResourceNodeAction.add("goto");
-                                gotoResourceNodeAction.add(best.getRight().get(1) + "");
-                                gotoResourceNodeAction.add(best.getRight().get(2) + "");
-                                sharedData.addNewAction(a.getName(), gotoResourceNodeAction);
-                                ArrayList<String> buyAction = new ArrayList<>();
-                                buyAction.add("buy");
-                                buyAction.add(best.getLeft());
-                                buyAction.add(best.getRight().get(3) + "");
-                                sharedData.addNewAction(a.getName(), buyAction);
-                                ArrayList<String> gotoStorageAction = new ArrayList<>();
-                                gotoStorageAction.add("goto");
-                                sharedData.addNewAction(a.getName(), gotoStorageAction);
-                                ArrayList<String> deliverJob = new ArrayList<>();
-                                deliverJob.add("deliver_job");
-                                deliverJob.add(ej.getLeft().getJobID());
-                                sharedData.addNewAction(a.getName(), deliverJob);
-                                sharedData.takeJob(ej.getLeft());
-                                break;
-                            }
-                        } else {
-                            // todo goto nearest resource node gather and put them in a storage
-                        }
-
-
                     }
                 }
             }
