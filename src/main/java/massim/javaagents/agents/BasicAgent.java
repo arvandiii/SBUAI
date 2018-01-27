@@ -104,6 +104,22 @@ public class BasicAgent extends Agent {
         switch (nextActionName) {
             case "goto":
 
+                chargingStation nearestChargingStation = null;
+                double nearestChargingStationDist = Double.MAX_VALUE;
+                for (chargingStation c : AP.getChargingStations()) {
+                    double dist = CustomUtils.distance(AP.getSelfInfo().getLat(), AP.getSelfInfo().getLon()
+                            , c.getLat(), c.getLon(), 'K');
+                    if (dist < nearestChargingStationDist) {
+                        nearestChargingStationDist = dist;
+                        nearestChargingStation = c;
+                    }
+                }
+
+                if (nearestChargingStationDist < 0.0003 &&
+                        sharedData.getRole(AP.getSelfInfo().getName()).getBattery() > 10 + AP.getSelfInfo().getCharge()) {
+                    return new Action("charge");
+                }
+
                 double disance = CustomUtils.distance(AP.getSelfInfo().getLat(), AP.getSelfInfo().getLon()
                         , Double.parseDouble(nextAction.get(1)), Double.parseDouble(nextAction.get(2)), 'K');
                 double step = disance / (sharedData.getRole(AP.getSelfInfo().getName()).getSpeed() * 0.2);
@@ -117,21 +133,13 @@ public class BasicAgent extends Agent {
                     p.add(new Identifier(nextAction.get(2)));
                     return new Action("goto", p);
                 } else {
-                    chargingStation nearestChargingStation = null;
-                    double nearestChargingStationDist = Double.MAX_VALUE;
-                    for (chargingStation c : AP.getChargingStations()) {
-                        double dist = CustomUtils.distance(AP.getSelfInfo().getLat(), AP.getSelfInfo().getLon()
-                                , c.getLat(), c.getLon(), 'K');
-                        if (dist < nearestChargingStationDist) {
-                            nearestChargingStationDist = dist;
-                            nearestChargingStation = c;
-                        }
-                    }
+
+
                     double stepsToChargingStation = nearestChargingStationDist / (sharedData.getRole(AP.getSelfInfo().getName()).getSpeed() * 0.2);
                     if (stepsToChargingStation <
                             (sharedData.getRole(AP.getSelfInfo().getName()).getBattery() - AP.getSelfInfo().getCharge()) / 5 &&
                             AP.getSelfInfo().getCharge() > (stepsToChargingStation * 10)) {
-                        if (nearestChargingStationDist < 0.0003){
+                        if (nearestChargingStationDist < 0.0003) {
                             return new Action("charge");
                         }
                         LinkedList<Parameter> p = new LinkedList<>();
