@@ -111,7 +111,7 @@ public class BasicAgent extends Agent {
 
                 double disance = CustomUtils.distance(AP.getSelfInfo().getLat(), AP.getSelfInfo().getLon()
                         , Double.parseDouble(nextAction.get(1)), Double.parseDouble(nextAction.get(2)), 'K');
-                double step = disance / (sharedData.getRole(AP.getSelfInfo().getName()).getSpeed() * 0.2);
+                double step = Math.ceil(disance / (sharedData.getRole(AP.getSelfInfo().getName()).getSpeed() * 0.2));
 
                 chargingStation nearestChargingStation = null;
                 double nearestChargingStationDist = Double.MAX_VALUE;
