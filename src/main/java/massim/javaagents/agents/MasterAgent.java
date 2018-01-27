@@ -52,15 +52,22 @@ public class MasterAgent extends Agent {
             research.add("research");
 
             for (entity a : agents) {
-                if (a.getName().equals("drone") && !oneDroneIsSearching) {
+                if (a.getRole().equals("drone")) {
                     sharedData.addNewAction(a.getName(), research);
-                    oneDroneIsSearching = true;
                     break;
                 }
             }
         }
 
         if (getStepNumber() > 1) {
+
+            // if resourceNode is seen save it in shared data
+            if (AP.getResourceNodes().size() != 0) {
+                for (resourceNode r : AP.getResourceNodes()) {
+                    sharedData.addNewResourceNode(r);
+                }
+                System.out.println("!!!! RESOURCE NODE FOUND BY MASTER !!!!");
+            }
 
             List<job> jobs = AP.getJobs();
 
