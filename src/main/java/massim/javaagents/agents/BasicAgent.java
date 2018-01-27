@@ -56,7 +56,7 @@ public class BasicAgent extends Agent {
             for (resourceNode r : AP.getResourceNodes()) {
                 sharedData.addNewResourceNode(r);
             }
-            System.out.println("!!!! RESOURCE NODE FOUND BY "+AP.getSelfInfo().getName()+" !!!!");
+            System.out.println("!!!! RESOURCE NODE FOUND BY " + AP.getSelfInfo().getName() + " !!!!");
         }
 
         Queue<ArrayList<String>> actions = sharedData.getMyActions(AP.getSelfInfo().getName());
@@ -113,8 +113,25 @@ public class BasicAgent extends Agent {
                         , Double.parseDouble(nextAction.get(1)), Double.parseDouble(nextAction.get(2)), 'K');
                 double step = disance / (sharedData.getRole(AP.getSelfInfo().getName()).getSpeed() * 0.2);
 
+                chargingStation nearestChargingStation = null;
+                double nearestChargingStationDist = Double.MAX_VALUE;
+                for (chargingStation c : AP.getChargingStations()) {
+                    double dist = CustomUtils.distance(AP.getSelfInfo().getLat(), AP.getSelfInfo().getLon()
+                            , c.getLat(), c.getLon(), 'K');
+                    if (dist < nearestChargingStationDist) {
+                        nearestChargingStationDist = dist;
+                        nearestChargingStation = c;
+                    }
+                }
+
                 System.out.println(AP.getSelfInfo().getName() + " enghad stepe dg monde ta beresam " + Math.ceil(step));
                 System.out.println(AP.getSelfInfo().getName() + " enghad charge daram " + AP.getSelfInfo().getCharge());
+
+                if (sharedData.getRole(AP.getSelfInfo().getName()).getBattery() > AP.getSelfInfo().getCharge() + 50) {
+                    if (nearestChargingStationDist < 0.0003) {
+                        return new Action("charge");
+                    }
+                }
 
                 if (AP.getSelfInfo().getCharge() > (step * 10)) {
                     LinkedList<Parameter> p = new LinkedList<>();
@@ -122,21 +139,11 @@ public class BasicAgent extends Agent {
                     p.add(new Identifier(nextAction.get(2)));
                     return new Action("goto", p);
                 } else {
-                    chargingStation nearestChargingStation = null;
-                    double nearestChargingStationDist = Double.MAX_VALUE;
-                    for (chargingStation c : AP.getChargingStations()) {
-                        double dist = CustomUtils.distance(AP.getSelfInfo().getLat(), AP.getSelfInfo().getLon()
-                                , c.getLat(), c.getLon(), 'K');
-                        if (dist < nearestChargingStationDist) {
-                            nearestChargingStationDist = dist;
-                            nearestChargingStation = c;
-                        }
-                    }
                     double stepsToChargingStation = nearestChargingStationDist / (sharedData.getRole(AP.getSelfInfo().getName()).getSpeed() * 0.2);
                     if (stepsToChargingStation <
                             (sharedData.getRole(AP.getSelfInfo().getName()).getBattery() - AP.getSelfInfo().getCharge()) / 5 &&
                             AP.getSelfInfo().getCharge() > (stepsToChargingStation * 10)) {
-                        if (nearestChargingStationDist < 0.0003){
+                        if (nearestChargingStationDist < 0.0003) {
                             return new Action("charge");
                         }
                         LinkedList<Parameter> p = new LinkedList<>();
@@ -174,14 +181,14 @@ public class BasicAgent extends Agent {
     private void calculateNextResearch() {
         researchCoordinates[0] = AP.getSelfInfo().getLat() + walkLat;
         researchCoordinates[1] = AP.getSelfInfo().getLon();
-        if(researchCoordinates[0] > maxLat) {
+        if (researchCoordinates[0] > maxLat) {
             researchCoordinates[0] = maxLat - 0.005;
-            walkLat =  -0.01;
-        }else if(researchCoordinates[0] < minLat){
+            walkLat = -0.01;
+        } else if (researchCoordinates[0] < minLat) {
             researchCoordinates[0] = minLat + 0.005;
-            walkLat =  0.01;
+            walkLat = 0.01;
         }
-        if(AP.getSelfInfo().getCharge() <= 50){
+        if (AP.getSelfInfo().getCharge() <= 50) {
 
         }
     }
