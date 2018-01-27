@@ -1,7 +1,6 @@
 package massim.javaagents.agents;
 
 import eis.iilang.Action;
-import eis.iilang.Identifier;
 import eis.iilang.Percept;
 import massim.javaagents.MailService;
 import massim.javaagents.percept.*;
@@ -15,6 +14,7 @@ public class MasterAgent extends Agent {
     boolean oneDroneIsSearching = false;
 
     AgentPercepts AP = new AgentPercepts();
+    ArrayList<entity> agents = new ArrayList<>();
 
     public MasterAgent(String name, MailService mailbox) {
         super(name, mailbox);
@@ -33,21 +33,16 @@ public class MasterAgent extends Agent {
         makePerceptObjects(AP);
         SharedData sharedData = SharedData.getSharedData();
 
-        //TODO if step == 0 addAll Shops
 
         if (getStepNumber() == 1) {
             sharedData.addMyRole(AP.getSelfInfo().getName(), AP.getSelfRole());
-
             sharedData.addAllShops(AP.getShops());
-
-
-            ArrayList<String> agents = new ArrayList<>();
 
             for (int i = 0; i < AP.getEntities().size(); i++) {
                 entity e = AP.getEntities().get(i);
                 if (e.getTeam().equals(AP.getSelfInfo().getTeam())) {
                     System.out.println(e.getName() + e.getRole());
-                    agents.add(e.getName());
+                    agents.add(e);
                 }
             }
 
@@ -56,49 +51,18 @@ public class MasterAgent extends Agent {
             ArrayList<String> research = new ArrayList<>();
             research.add("research");
 
-//            ArrayList<String> firstGoto = new ArrayList<>();
-//            firstGoto.add("goto");
-//            firstGoto.add(shop0.getShopLat() + "");
-//            firstGoto.add(shop0.getShopLon() + "");
-//
-//            ArrayList<String> secondGoto = new ArrayList<>();
-//            secondGoto.add("goto");
-//            secondGoto.add(shop1.getShopLat() + "");
-//            secondGoto.add(shop1.getShopLon() + "");
-
-
-            for (String a : agents) {
-                switch (a) {
-                    case "drone":
-                        if (!oneDroneIsSearching) {
-                            sharedData.addNewAction(a, research);
-                            oneDroneIsSearching = true;
-                            break;
-                        }
-                    default:
-//                        sharedData.addNewAction(a, firstGoto);
-//                        sharedData.addNewAction(a, secondGoto);
+            for (entity a : agents) {
+                if (a.getName().equals("drone") && !oneDroneIsSearching) {
+                    sharedData.addNewAction(a.getName(), research);
+                    oneDroneIsSearching = true;
+                    break;
                 }
-
-
             }
-            System.out.println("im master");
-
         }
 
         if (getStepNumber() > 1) {
 
-            ArrayList<entity> agents = new ArrayList<>();
-
-            for (int i = 0; i < AP.getEntities().size(); i++) {
-                entity e = AP.getEntities().get(i);
-                if (e.getTeam().equals(AP.getSelfInfo().getTeam())) {
-                    agents.add(e);
-                }
-            }
-
-
-            List<job> jobs = AP.getJobs(); // find jobs
+            List<job> jobs = AP.getJobs();
 
             LinkedList<job> notTakenJobs = new LinkedList<>();
             for (job j : jobs) {
@@ -112,7 +76,6 @@ public class MasterAgent extends Agent {
             // [job, evaluation, [<itemName, volume>]]
 
             ArrayList<ArrayList<Object>> evaluatedJobs = new ArrayList<>();
-//            LinkedList<Pair<job, Pair<Integer, LinkedList<Pair<String, Integer>>>>> evaluatedJobs = new LinkedList<>();
 
             for (job j : notTakenJobs) {
                 int end = j.getJobEnd();
@@ -150,7 +113,6 @@ public class MasterAgent extends Agent {
                 }
 
                 if (items.size() == 1) {
-
                     for (entity a : agents) {
                         if (sharedData.getMyActions(a.getName()).size() == 0) {
                             role r = sharedData.getRole(a.getName());
@@ -160,8 +122,6 @@ public class MasterAgent extends Agent {
                             double minDist = Double.MAX_VALUE;
                             ArrayList<Object> best = null;
                             String itemName = items.get(0).getLeft();
-                            System.out.println("################x" + items.get(0).getLeft()
-                                    + " " + items.get(0).getRight().size());
                             for (ArrayList<Object> i : items.get(0).getRight()) {
                                 double dist = CustomUtils.distance(a.getLat(), a.getLon(),
                                         (Double) i.get(1), (Double) i.get(2), 'K');
@@ -198,7 +158,8 @@ public class MasterAgent extends Agent {
                                     ArrayList<String> buyAction = new ArrayList<>();
                                     buyAction.add("buy");
                                     buyAction.add(itemName);
-                                    buyAction.add(best.get(3) + "");
+                                    buyAction.add(((job) ej.get(0)).getJobRequireds().get(0).getRight() + "");
+                                    buyAction.add(((Pair) ((ArrayList) ej.get(2)).get(0)).getRight() + "");
                                     sharedData.addNewAction(a.getName(), buyAction);
                                     ArrayList<String> gotoStorageAction = new ArrayList<>();
                                     gotoStorageAction.add("goto");
@@ -211,7 +172,6 @@ public class MasterAgent extends Agent {
                                             break;
                                         }
                                     }
-
                                     sharedData.addNewAction(a.getName(), gotoStorageAction);
                                     ArrayList<String> deliverJob = new ArrayList<>();
                                     deliverJob.add("deliver_job");
@@ -225,17 +185,7 @@ public class MasterAgent extends Agent {
                     }
                 }
             }
-
         }
-
-
-        // for jobs not taken => for agents not doing anything and not drone => find appropriate => assign this job
-
-        // assign job => resource || shop || storage => do best
-
-        // drones only searching and saving resource nodes
-
-        // for agents not doing anything => go to resource nodes and store in storage and save data in shared data
 
         return new Action("skip");
     }

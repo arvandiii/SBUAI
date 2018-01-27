@@ -104,6 +104,9 @@ public class job {
             return true;
         return false;
     }
-    
-    
+
+    @Override
+    public String toString() {
+        return jobID;
+    }
 }

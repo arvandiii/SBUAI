@@ -38,9 +38,9 @@ public class SharedData {
         return resourceNodes;
     }
 
-    public void initActions(ArrayList<String> agents) {
-        for (String a : agents) {
-            actions.put(a, new LinkedList<>());
+    public void initActions(ArrayList<entity> agents) {
+        for (entity a : agents) {
+            actions.put(a.getName(), new LinkedList<>());
         }
     }
 

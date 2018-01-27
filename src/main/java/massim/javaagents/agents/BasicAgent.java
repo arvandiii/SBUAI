@@ -62,7 +62,6 @@ public class BasicAgent extends Agent {
         }
 
 
-
         // check if last action should remove from queue
         ArrayList<String> lastAction = actions.peek();
         String lastActionName = lastAction.get(0);
@@ -105,8 +104,6 @@ public class BasicAgent extends Agent {
         switch (nextActionName) {
             case "goto":
                 // TODO if charge not enough recharge
-
-
                 LinkedList<Parameter> p = new LinkedList<>();
                 p.add(new Identifier(nextAction.get(1)));
                 p.add(new Identifier(nextAction.get(2)));
@@ -116,6 +113,10 @@ public class BasicAgent extends Agent {
                 pbuy.add(new Identifier(nextAction.get(1)));
                 pbuy.add(new Identifier(nextAction.get(2)));
                 return new Action("buy", pbuy);
+            case "deliver_job":
+                LinkedList<Parameter> pdeliver = new LinkedList<>();
+                pdeliver.add(new Identifier(nextAction.get(1)));
+                return new Action("deliver_job", pdeliver);
             case "research":
                 // TODO go to a place not visited
                 researchCoordinates = calculateNextResearch();
@@ -123,7 +124,6 @@ public class BasicAgent extends Agent {
                 parameters.add(new Identifier(researchCoordinates[0].toString()));
                 parameters.add(new Identifier(researchCoordinates[1].toString()));
                 return new Action("goto", parameters);
-
             default:
                 return new Action("skip");
         }
