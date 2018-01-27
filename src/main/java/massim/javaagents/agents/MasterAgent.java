@@ -132,6 +132,9 @@ public class MasterAgent extends Agent {
                             for (ArrayList<Object> i : items.get(0).getRight()) {
                                 double dist = CustomUtils.distance(a.getLat(), a.getLon(),
                                         (Double) i.get(1), (Double) i.get(2), 'K');
+                                if (i.get(0).equals("shop")) {
+                                    dist *= 1000;
+                                }
                                 if (dist < minDist && load >= (Integer) i.get(3)) {
                                     minDist = dist;
                                     best = i;
