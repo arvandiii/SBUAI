@@ -1,10 +1,6 @@
 package massim.javaagents.agents;
 
-import eis.iilang.Action;
-import massim.javaagents.percept.Pair;
-import massim.javaagents.percept.job;
-import massim.javaagents.percept.resourceNode;
-import massim.javaagents.percept.role;
+import massim.javaagents.percept.*;
 
 import java.util.*;
 
@@ -23,6 +19,16 @@ public class SharedData {
 
     private Map<String, Queue<ArrayList<String>>> actions = new HashMap<>();
     private HashSet<resourceNode> resourceNodes = new HashSet<>();
+    private HashSet<shop> shops = new HashSet<>();
+
+    public void addAllShops(List<shop> shops) {
+        this.shops.addAll(shops);
+    }
+
+    public HashSet<shop> getShops() {
+        return shops;
+    }
+
 
     public void addNewResourceNode(resourceNode resource) {
         resourceNodes.add(resource);
@@ -59,25 +65,50 @@ public class SharedData {
         return true;
     }
 
-    private LinkedList<Pair<String, role>> roles = new LinkedList<>();
+    private HashMap<String, role> roles = new HashMap<>();
 
-    public void addMyRole(Pair<String, role> myRole) {
-        roles.add(myRole);
+    public void addMyRole(String myName, role myRole) {
+        roles.put(myName, myRole);
     }
 
     public role getRole(String myName) {
-        for (Pair<String, role> nr : roles) {
-            if (nr.getLeft().equals(myName)) {
-                return nr.getRight();
-            }
-        }
-        return null;
+        return roles.get(myName);
     }
 
-    public ArrayList<Object> getItemSources(String itemName){
+    public ArrayList<ArrayList<Object>> getItemSources(String itemName) {
         // array [string (shop || resourceNode), Double lat, Double lon, Integer Volume]
         // shop ha va resourceNode ha ro begard vase in item
-        // todo
-        return  null;
+
+        System.out.println("SOUUUUUT SIZE OF SHOPSSSSSSSS:" + shops.size());
+        System.out.println("SOUUUUUT SIZE OF ResourceNodesssss:" + resourceNodes.size());
+
+        ArrayList<ArrayList<Object>> sources = new ArrayList<>();
+
+
+        for (resourceNode r : resourceNodes) {
+            if (r.getResource().equals(itemName)) {
+                ArrayList<Object> result = new ArrayList<>();
+                result.add("resourceNode");
+                result.add(r.getLat());
+                result.add(r.getLon());
+                result.add(-1);
+                sources.add(result);
+            }
+        }
+
+        for (shop s : shops) {
+            shopItem item = s.getShopItemsMap().get(itemName);
+            if (item != null) {
+                ArrayList<Object> result = new ArrayList<>();
+                result.add("shop");
+                result.add(s.getShopLat());
+                result.add(s.getShopLon());
+                result.add(item.getAmount());
+                sources.add(result);
+            }
+        }
+
+
+        return sources;
     }
 }

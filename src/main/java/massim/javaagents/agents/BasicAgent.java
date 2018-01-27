@@ -43,7 +43,7 @@ public class BasicAgent extends Agent {
         SharedData sharedData = SharedData.getSharedData();
 
         if (getStepNumber() == 0) {
-            sharedData.addMyRole(new Pair<>(AP.getSelfInfo().getName(), AP.getSelfRole()));
+            sharedData.addMyRole(AP.getSelfInfo().getName(), AP.getSelfRole());
         }
 
 
@@ -57,8 +57,10 @@ public class BasicAgent extends Agent {
         Queue<ArrayList<String>> actions = sharedData.getMyActions(AP.getSelfInfo().getName());
 
         System.out.println(AP.getSelfInfo().getName() + "\t" + actions);
-        if (actions == null || actions.size() == 0)
+        if (actions == null || actions.size() == 0) {
             return new Action("skip");
+        }
+
 
 
         // check if last action should remove from queue
@@ -76,19 +78,27 @@ public class BasicAgent extends Agent {
                     actions.poll();
                 }
                 break;
-            case "research":
-                researchCoordinates = calculateNextResearch();
+            case "buy":
+                if (AP.getSelfInfo().getLastActionResult().equals("successful")) {
+                    actions.poll();
+                }
                 break;
+            case "deliver_job":
+                if (AP.getSelfInfo().getLastActionResult().equals("successful")) {
+                    actions.poll();
+                }
+                break;
+
             default:
                 break;
         }
 
 
-        if (actions.size() == 0)
+        if (actions.size() == 0) {
             return new Action("skip");
+        }
 
-
-        // do action
+        // handle next action
         ArrayList<String> nextAction = actions.peek();
         String nextActionName = nextAction.get(0);
 
@@ -97,17 +107,23 @@ public class BasicAgent extends Agent {
                 // TODO if charge not enough recharge
 
 
-
                 LinkedList<Parameter> p = new LinkedList<>();
                 p.add(new Identifier(nextAction.get(1)));
                 p.add(new Identifier(nextAction.get(2)));
                 return new Action("goto", p);
+            case "buy":
+                LinkedList<Parameter> pbuy = new LinkedList<>();
+                pbuy.add(new Identifier(nextAction.get(1)));
+                pbuy.add(new Identifier(nextAction.get(2)));
+                return new Action("buy", pbuy);
             case "research":
                 // TODO go to a place not visited
+                researchCoordinates = calculateNextResearch();
                 LinkedList<Parameter> parameters = new LinkedList<>();
                 parameters.add(new Identifier(researchCoordinates[0].toString()));
                 parameters.add(new Identifier(researchCoordinates[1].toString()));
                 return new Action("goto", parameters);
+
             default:
                 return new Action("skip");
         }
@@ -118,7 +134,6 @@ public class BasicAgent extends Agent {
     private Double[] calculateNextResearch() {
         researchCoordinates[0] = AP.getSelfInfo().getLat();
         researchCoordinates[1] = AP.getSelfInfo().getLon();
-
 
 
         return null;

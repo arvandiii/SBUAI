@@ -33,8 +33,14 @@ public class MasterAgent extends Agent {
         makePerceptObjects(AP);
         SharedData sharedData = SharedData.getSharedData();
 
+        //TODO if step == 0 addAll Shops
 
-        if (getStepNumber() >= 1) {
+        if (getStepNumber() == 1) {
+            sharedData.addMyRole(AP.getSelfInfo().getName(), AP.getSelfRole());
+
+            sharedData.addAllShops(AP.getShops());
+
+
             ArrayList<String> agents = new ArrayList<>();
 
             for (int i = 0; i < AP.getEntities().size(); i++) {
@@ -47,21 +53,18 @@ public class MasterAgent extends Agent {
 
             sharedData.initActions(agents);
 
-            shop shop0 = AP.getShops().get(0);
-            shop shop1 = AP.getShops().get(1);
-
             ArrayList<String> research = new ArrayList<>();
             research.add("research");
 
-            ArrayList<String> firstGoto = new ArrayList<>();
-            firstGoto.add("goto");
-            firstGoto.add(shop0.getShopLat() + "");
-            firstGoto.add(shop0.getShopLon() + "");
-
-            ArrayList<String> secondGoto = new ArrayList<>();
-            secondGoto.add("goto");
-            secondGoto.add(shop1.getShopLat() + "");
-            secondGoto.add(shop1.getShopLon() + "");
+//            ArrayList<String> firstGoto = new ArrayList<>();
+//            firstGoto.add("goto");
+//            firstGoto.add(shop0.getShopLat() + "");
+//            firstGoto.add(shop0.getShopLon() + "");
+//
+//            ArrayList<String> secondGoto = new ArrayList<>();
+//            secondGoto.add("goto");
+//            secondGoto.add(shop1.getShopLat() + "");
+//            secondGoto.add(shop1.getShopLon() + "");
 
 
             for (String a : agents) {
@@ -73,8 +76,8 @@ public class MasterAgent extends Agent {
                             break;
                         }
                     default:
-                        sharedData.addNewAction(a, firstGoto);
-                        sharedData.addNewAction(a, secondGoto);
+//                        sharedData.addNewAction(a, firstGoto);
+//                        sharedData.addNewAction(a, secondGoto);
                 }
 
 
@@ -106,14 +109,17 @@ public class MasterAgent extends Agent {
 
             System.out.println(notTakenJobs);
 
-            LinkedList<Pair<job, Pair<Integer, LinkedList<Pair<String, Integer>>>>> evaluatedJobs = new LinkedList<>();
+            // [job, evaluation, [<itemName, volume>]]
+
+            ArrayList<ArrayList<Object>> evaluatedJobs = new ArrayList<>();
+//            LinkedList<Pair<job, Pair<Integer, LinkedList<Pair<String, Integer>>>>> evaluatedJobs = new LinkedList<>();
 
             for (job j : notTakenJobs) {
                 int end = j.getJobEnd();
                 int reward = j.getJobReward();
                 int volume = 0;
                 List<Pair<String, Integer>> requireds = j.getJobRequireds();
-                LinkedList<Pair<String, Integer>> itemWithVolume = new LinkedList<>();
+                ArrayList<Pair<String, Integer>> itemWithVolume = new ArrayList<>();
                 for (int i = 0; i < requireds.size(); i++) {
                     for (int k = 0; k < AP.getItemsInEnv().size(); k++) {
                         if (AP.getItemsInEnv().get(k).getName().equals(requireds.get(i).getLeft())) {
@@ -128,13 +134,18 @@ public class MasterAgent extends Agent {
                 int C = 15;
                 int valuation = A * end + B * reward - C * volume;
                 System.out.println(j.getJobID() + "\t" + end + "\t" + reward + "\t" + volume + "\t" + valuation);
-                evaluatedJobs.add(new Pair<>(j, new Pair<>(valuation, itemWithVolume)));
+                ArrayList<Object> ej = new ArrayList<>();
+                ej.add(j);
+                ej.add(valuation);
+                ej.add(itemWithVolume);
+                evaluatedJobs.add(ej);
             }
 
-            for (Pair<job, Pair<Integer, LinkedList<Pair<String, Integer>>>> ej : evaluatedJobs) {
-                ArrayList<Pair<String, ArrayList<Object>>> items = new ArrayList<>();
-                for (Pair<String, Integer> item : ej.getRight().getRight()) {
-                    ArrayList<Object> sources = sharedData.getItemSources(item.getLeft());
+
+            for (ArrayList<Object> ej : evaluatedJobs) {
+                ArrayList<Pair<String, ArrayList<ArrayList<Object>>>> items = new ArrayList<>();
+                for (Pair<String, Integer> item : (ArrayList<Pair>) ej.get(2)) {
+                    ArrayList<ArrayList<Object>> sources = sharedData.getItemSources(item.getLeft());
                     items.add(new Pair<>(item.getLeft(), sources));
                 }
 
@@ -147,21 +158,24 @@ public class MasterAgent extends Agent {
                             int speed = r.getSpeed();
 
                             double minDist = Double.MAX_VALUE;
-                            Pair<String, ArrayList<Object>> best = null;
-                            for (Pair<String, ArrayList<Object>> i : items) {
+                            ArrayList<Object> best = null;
+                            String itemName = items.get(0).getLeft();
+                            System.out.println("################x" + items.get(0).getLeft()
+                                    + " " + items.get(0).getRight().size());
+                            for (ArrayList<Object> i : items.get(0).getRight()) {
                                 double dist = CustomUtils.distance(a.getLat(), a.getLon(),
-                                        (Double) i.getRight().get(1), (Double) i.getRight().get(2), 'K');
-                                if (dist < minDist && load >= (Integer) i.getRight().get(3)) {
+                                        (Double) i.get(1), (Double) i.get(2), 'K');
+                                if (dist < minDist && load >= (Integer) i.get(3)) {
                                     minDist = dist;
                                     best = i;
                                 }
                             }
                             if (best != null) {
-                                if (best.getRight().get(0).equals("resourceNode")) {
+                                if (best.get(0).equals("resourceNode")) {
                                     ArrayList<String> gotoResourceNodeAction = new ArrayList<>();
                                     gotoResourceNodeAction.add("goto");
-                                    gotoResourceNodeAction.add(best.getRight().get(1) + "");
-                                    gotoResourceNodeAction.add(best.getRight().get(2) + "");
+                                    gotoResourceNodeAction.add(best.get(1) + "");
+                                    gotoResourceNodeAction.add(best.get(2) + "");
                                     sharedData.addNewAction(a.getName(), gotoResourceNodeAction);
                                     ArrayList<String> gatherAction = new ArrayList<>();
                                     gatherAction.add("gather");
@@ -171,29 +185,39 @@ public class MasterAgent extends Agent {
                                     sharedData.addNewAction(a.getName(), gotoStorageAction);
                                     ArrayList<String> deliverJob = new ArrayList<>();
                                     deliverJob.add("deliver_job");
-                                    deliverJob.add(ej.getLeft().getJobID());
+                                    deliverJob.add(((job) ej.get(0)).getJobID());
                                     sharedData.addNewAction(a.getName(), deliverJob);
-                                    sharedData.takeJob(ej.getLeft());
+                                    sharedData.takeJob((job) ej.get(0));
                                     break;
-                                } else if (best.getRight().get(0).equals("shop")) {
+                                } else if (best.get(0).equals("shop")) {
                                     ArrayList<String> gotoResourceNodeAction = new ArrayList<>();
                                     gotoResourceNodeAction.add("goto");
-                                    gotoResourceNodeAction.add(best.getRight().get(1) + "");
-                                    gotoResourceNodeAction.add(best.getRight().get(2) + "");
+                                    gotoResourceNodeAction.add(best.get(1) + "");
+                                    gotoResourceNodeAction.add(best.get(2) + "");
                                     sharedData.addNewAction(a.getName(), gotoResourceNodeAction);
                                     ArrayList<String> buyAction = new ArrayList<>();
                                     buyAction.add("buy");
-                                    buyAction.add(best.getLeft());
-                                    buyAction.add(best.getRight().get(3) + "");
+                                    buyAction.add(itemName);
+                                    buyAction.add(best.get(3) + "");
                                     sharedData.addNewAction(a.getName(), buyAction);
                                     ArrayList<String> gotoStorageAction = new ArrayList<>();
                                     gotoStorageAction.add("goto");
+                                    String storageName = ((job) ej.get(0)).getJobStorage();
+                                    for (storage s :
+                                            AP.getStorages()) {
+                                        if (s.getName().equals(storageName)) {
+                                            gotoStorageAction.add(s.getLat() + "");
+                                            gotoStorageAction.add(s.getLon() + "");
+                                            break;
+                                        }
+                                    }
+
                                     sharedData.addNewAction(a.getName(), gotoStorageAction);
                                     ArrayList<String> deliverJob = new ArrayList<>();
                                     deliverJob.add("deliver_job");
-                                    deliverJob.add(ej.getLeft().getJobID());
+                                    deliverJob.add(((job) ej.get(0)).getJobID());
                                     sharedData.addNewAction(a.getName(), deliverJob);
-                                    sharedData.takeJob(ej.getLeft());
+                                    sharedData.takeJob((job) ej.get(0));
                                     break;
                                 }
                             }

@@ -5,11 +5,9 @@
  */
 package massim.javaagents.percept;
 
-import java.util.HashMap;
+import java.util.*;
+
 import massim.javaagents.percept.shopItem;
-import java.util.List;
-import java.util.Map;
-import java.util.Vector;
 
 /**
  *
@@ -87,5 +85,18 @@ public class shop {
             ShopItemsMap.putIfAbsent(shopItems.get(i).getName(), shopItems.get(i));
         }
     }
-    
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        shop shop = (shop) o;
+        return Objects.equals(shopName, shop.shopName);
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(shopName);
+    }
 }
