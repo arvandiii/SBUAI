@@ -3,7 +3,7 @@ package massim.javaagents.agents;
 import eis.iilang.*;
 import massim.javaagents.MailService;
 import massim.javaagents.percept.AgentPercepts;
-import massim.javaagents.percept.Pair;
+import massim.javaagents.percept.chargingStation;
 import massim.javaagents.percept.resourceNode;
 
 import java.util.ArrayList;
@@ -111,14 +111,37 @@ public class BasicAgent extends Agent {
                 System.out.println(AP.getSelfInfo().getName() + " enghad stepe dg monde ta beresam " + Math.ceil(step));
                 System.out.println(AP.getSelfInfo().getName() + " enghad charge daram " + AP.getSelfInfo().getCharge());
 
-                if (AP.getSelfInfo().getCharge() > (step * 10) * 2) {
+                if (AP.getSelfInfo().getCharge() > (step * 10)) {
                     LinkedList<Parameter> p = new LinkedList<>();
                     p.add(new Identifier(nextAction.get(1)));
                     p.add(new Identifier(nextAction.get(2)));
                     return new Action("goto", p);
+                } else {
+                    chargingStation nearestChargingStation = null;
+                    double nearestChargingStationDist = Double.MAX_VALUE;
+                    for (chargingStation c : AP.getChargingStations()) {
+                        double dist = CustomUtils.distance(AP.getSelfInfo().getLat(), AP.getSelfInfo().getLon()
+                                , c.getLat(), c.getLon(), 'K');
+                        if (dist < nearestChargingStationDist) {
+                            nearestChargingStationDist = dist;
+                            nearestChargingStation = c;
+                        }
+                    }
+                    double stepsToChargingStation = nearestChargingStationDist / (sharedData.getRole(AP.getSelfInfo().getName()).getSpeed() * 0.2);
+                    if (stepsToChargingStation <
+                            (sharedData.getRole(AP.getSelfInfo().getName()).getBattery() - AP.getSelfInfo().getCharge()) / 5 &&
+                            AP.getSelfInfo().getCharge() > (stepsToChargingStation * 10)) {
+                        if (nearestChargingStationDist < 0.0003){
+                            return new Action("charge");
+                        }
+                        LinkedList<Parameter> p = new LinkedList<>();
+                        p.add(new Identifier(nearestChargingStation.getLat() + ""));
+                        p.add(new Identifier(nearestChargingStation.getLon() + ""));
+                        return new Action("goto", p);
+                    } else {
+                        return new Action("recharge");
+                    }
                 }
-
-                // todo bere charge kone
 
             case "buy":
                 LinkedList<Parameter> pbuy = new LinkedList<>();
