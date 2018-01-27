@@ -92,7 +92,11 @@ public class BasicAgent extends Agent {
                     actions.poll();
                 }
                 break;
-
+            case "gather":
+                if (AP.getSelfInfo().getLastActionResult().equals("successful")) {
+                    actions.poll();
+                }
+                break;
             default:
                 break;
         }
@@ -167,6 +171,8 @@ public class BasicAgent extends Agent {
                 LinkedList<Parameter> pdeliver = new LinkedList<>();
                 pdeliver.add(new Identifier(nextAction.get(1)));
                 return new Action("deliver_job", pdeliver);
+            case "gather":
+                return new Action("gather");
             case "research":
                 // TODO go to a place not visited
                 LinkedList<Parameter> parameters = new LinkedList<>();
