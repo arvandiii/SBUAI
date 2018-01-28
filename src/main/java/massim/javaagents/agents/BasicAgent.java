@@ -24,6 +24,7 @@ public class BasicAgent extends Agent {
     double walkLat = 0.008;
     double walkLon = 0.012;
 
+    boolean headForCharging = false;
 
     public BasicAgent(String name, MailService mailbox) {
         super(name, mailbox);
@@ -97,6 +98,9 @@ public class BasicAgent extends Agent {
                     actions.poll();
                 }
                 break;
+            case "charge":
+                actions.poll();
+                break;
             default:
                 break;
         }
@@ -132,7 +136,6 @@ public class BasicAgent extends Agent {
                 double disance = CustomUtils.distance(AP.getSelfInfo().getLat(), AP.getSelfInfo().getLon()
                         , Double.parseDouble(nextAction.get(1)), Double.parseDouble(nextAction.get(2)), 'K');
                 double step = Math.ceil(disance / (sharedData.getRole(AP.getSelfInfo().getName()).getSpeed() * 0.2));
-
 
 
                 System.out.println(AP.getSelfInfo().getName() + " enghad stepe dg monde ta beresam " + Math.ceil(step));
@@ -175,6 +178,31 @@ public class BasicAgent extends Agent {
                 return new Action("gather");
             case "research":
                 // TODO go to a place not visited
+
+                if (AP.getSelfInfo().getCharge() <= 50 && !headForCharging) {
+                    chargingStation nearestChargingStationD = null;
+                    double nearestChargingStationDistD = Double.MAX_VALUE;
+                    for (chargingStation c : AP.getChargingStations()) {
+                        double dist = CustomUtils.distance(AP.getSelfInfo().getLat(), AP.getSelfInfo().getLon()
+                                , c.getLat(), c.getLon(), 'K');
+                        if (dist < nearestChargingStationDistD) {
+                            nearestChargingStationDistD = dist;
+                            nearestChargingStationD = c;
+                        }
+                    }
+                    if (nearestChargingStationDistD < 0.0003 &&
+                            sharedData.getRole(AP.getSelfInfo().getName()).getBattery() > 10 + AP.getSelfInfo().getCharge()) {
+                        return new Action("charge");
+                    }
+                    if (Math.floor(nearestChargingStationDistD) < 1) {
+                        return new Action("goto", new Identifier(nearestChargingStationD.getLat() + ""),
+                                new Identifier(nearestChargingStationD.getLon() + ""));
+                    }
+
+                }
+                headForCharging = false;
+                if(AP.getSelfInfo().getCharge()< 10)
+                    return new Action("recharge");
                 LinkedList<Parameter> parameters = new LinkedList<>();
                 parameters.add(new Identifier(researchCoordinates[0].toString()));
                 parameters.add(new Identifier(researchCoordinates[1].toString()));
@@ -197,8 +225,8 @@ public class BasicAgent extends Agent {
             researchCoordinates[0] = minLat + 0.005;
             walkLat = 0.01;
         }
-        if (AP.getSelfInfo().getCharge() <= 50) {
 
-        }
     }
+
+
 }
