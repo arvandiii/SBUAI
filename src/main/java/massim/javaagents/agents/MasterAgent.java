@@ -40,7 +40,7 @@ public class MasterAgent extends Agent {
 
             for (int i = 0; i < AP.getEntities().size(); i++) {
                 entity e = AP.getEntities().get(i);
-                if (e.getTeam().equals(AP.getSelfInfo().getTeam())) {
+                if (e.getTeam().equals(AP.getSelfInfo().getTeam()) && sharedData.getRole(e.getName()) != null) {
                     System.out.println(e.getName() + e.getRole());
                     agents.add(e);
                 }
@@ -152,6 +152,15 @@ public class MasterAgent extends Agent {
                                     sharedData.addNewAction(a.getName(), gatherAction);
                                     ArrayList<String> gotoStorageAction = new ArrayList<>();
                                     gotoStorageAction.add("goto");
+                                    String storageName = ((job) ej.get(0)).getJobStorage();
+                                    for (storage s :
+                                            AP.getStorages()) {
+                                        if (s.getName().equals(storageName)) {
+                                            gotoStorageAction.add(s.getLat() + "");
+                                            gotoStorageAction.add(s.getLon() + "");
+                                            break;
+                                        }
+                                    }
                                     sharedData.addNewAction(a.getName(), gotoStorageAction);
                                     ArrayList<String> deliverJob = new ArrayList<>();
                                     deliverJob.add("deliver_job");
@@ -190,6 +199,8 @@ public class MasterAgent extends Agent {
                                     sharedData.takeJob((job) ej.get(0));
                                     break;
                                 }
+                            } else {
+                                // todo go to storage and save items
                             }
                         }
                     }
