@@ -21,10 +21,10 @@ public class BasicAgent extends Agent {
     double maxLon = 2.41;
     double minLat = 48.82;//0.08
     double maxLat = 48.90;
-    double walkLat = 0.008;
+    double walkLat = 0.006;
     double walkLon = 0.012;
 
-    boolean headForCharging = false;
+
 
     public BasicAgent(String name, MailService mailbox) {
         super(name, mailbox);
@@ -179,29 +179,25 @@ public class BasicAgent extends Agent {
             case "research":
                 // TODO go to a place not visited
 
-                if (AP.getSelfInfo().getCharge() <= 50 && !headForCharging) {
-                    chargingStation nearestChargingStationD = null;
-                    double nearestChargingStationDistD = Double.MAX_VALUE;
-                    for (chargingStation c : AP.getChargingStations()) {
-                        double dist = CustomUtils.distance(AP.getSelfInfo().getLat(), AP.getSelfInfo().getLon()
-                                , c.getLat(), c.getLon(), 'K');
-                        if (dist < nearestChargingStationDistD) {
-                            nearestChargingStationDistD = dist;
-                            nearestChargingStationD = c;
-                        }
+                chargingStation nearestChargingStationD = null;
+                double nearestChargingStationDistD = Double.MAX_VALUE;
+                for (chargingStation c : AP.getChargingStations()) {
+                    double dist = CustomUtils.distance(AP.getSelfInfo().getLat(), AP.getSelfInfo().getLon()
+                            , c.getLat(), c.getLon(), 'K');
+                    if (dist < nearestChargingStationDistD) {
+                        nearestChargingStationDistD = dist;
+                        nearestChargingStationD = c;
                     }
-                    if (nearestChargingStationDistD < 0.0003 &&
-                            sharedData.getRole(AP.getSelfInfo().getName()).getBattery() > 10 + AP.getSelfInfo().getCharge()) {
-                        return new Action("charge");
-                    }
-                    if (Math.floor(nearestChargingStationDistD) < 1) {
-                        return new Action("goto", new Identifier(nearestChargingStationD.getLat() + ""),
-                                new Identifier(nearestChargingStationD.getLon() + ""));
-                    }
-
                 }
-                headForCharging = false;
-                if(AP.getSelfInfo().getCharge()< 10)
+                if (nearestChargingStationDistD < 0.0003 &&
+                        sharedData.getRole(AP.getSelfInfo().getName()).getBattery() > 10 + AP.getSelfInfo().getCharge()) {
+                    return new Action("charge");
+                }
+                if (Math.floor(nearestChargingStationDistD) < 1 && AP.getSelfInfo().getCharge() <= 50) {
+                    return new Action("goto", new Identifier(nearestChargingStationD.getLat() + ""),
+                            new Identifier(nearestChargingStationD.getLon() + ""));
+                }
+                if (AP.getSelfInfo().getCharge() < 10)
                     return new Action("recharge");
                 LinkedList<Parameter> parameters = new LinkedList<>();
                 parameters.add(new Identifier(researchCoordinates[0].toString()));
@@ -216,17 +212,22 @@ public class BasicAgent extends Agent {
     }
 
     private void calculateNextResearch() {
-        researchCoordinates[0] = AP.getSelfInfo().getLat() + walkLat;
-        researchCoordinates[1] = AP.getSelfInfo().getLon();
-        if (researchCoordinates[0] > maxLat) {
+
+        if ( maxLat -  researchCoordinates[0] < 0.01){
             researchCoordinates[0] = maxLat - 0.005;
-            walkLat = -0.01;
-        } else if (researchCoordinates[0] < minLat) {
-            researchCoordinates[0] = minLat + 0.005;
-            walkLat = 0.01;
+            researchCoordinates[1] = maxLon - 0.005;
+        }
+
+        if (getStepNumber() == 2) {
+            researchCoordinates[0] = maxLat - 0.005;
+            researchCoordinates[1] = maxLon - 0.005;
+        } else {
+
         }
 
     }
+
+
 
 
 }
