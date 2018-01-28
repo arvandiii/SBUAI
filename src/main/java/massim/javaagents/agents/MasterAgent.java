@@ -140,6 +140,11 @@ public class MasterAgent extends Agent {
                                     best = i;
                                 }
                             }
+
+//                            if (best.get(0).equals("shop")) {
+//                                best = null;
+//                            }
+
                             if (best != null) {
                                 if (best.get(0).equals("resourceNode")) {
                                     ArrayList<String> gotoResourceNodeAction = new ArrayList<>();
@@ -200,7 +205,34 @@ public class MasterAgent extends Agent {
                                     break;
                                 }
                             } else {
-                                // todo go to storage and save items
+                                Random random = new Random();
+                                int rand = random.nextInt(3 + 1 - 0) + 0;
+
+                                if (rand == 0) {
+                                    int randomNumber = random.nextInt(AP.getDumps().size() - 0) + 0;
+                                    dump d = AP.getDumps().get(randomNumber);
+                                    ArrayList<String> gotoResourceNodeAction = new ArrayList<>();
+                                    gotoResourceNodeAction.add("goto");
+                                    gotoResourceNodeAction.add(d.getLat() + "");
+                                    gotoResourceNodeAction.add(d.getLon() + "");
+                                    sharedData.addNewAction(a.getName(), gotoResourceNodeAction);
+                                } else if (rand == 1){
+                                    int randomNumber = random.nextInt(AP.getShops().size() - 0) + 0;
+                                    shop s = AP.getShops().get(randomNumber);
+                                    ArrayList<String> gotoResourceNodeAction = new ArrayList<>();
+                                    gotoResourceNodeAction.add("goto");
+                                    gotoResourceNodeAction.add(s.getShopLat() + "");
+                                    gotoResourceNodeAction.add(s.getShopLon() + "");
+                                    sharedData.addNewAction(a.getName(), gotoResourceNodeAction);
+                                } else if (rand == 2){
+                                    int randomNumber = random.nextInt(AP.getStorages().size() - 0) + 0;
+                                    storage s = AP.getStorages().get(randomNumber);
+                                    ArrayList<String> gotoResourceNodeAction = new ArrayList<>();
+                                    gotoResourceNodeAction.add("goto");
+                                    gotoResourceNodeAction.add(s.getLat() + "");
+                                    gotoResourceNodeAction.add(s.getLon() + "");
+                                    sharedData.addNewAction(a.getName(), gotoResourceNodeAction);
+                                }
                             }
                         }
                     }

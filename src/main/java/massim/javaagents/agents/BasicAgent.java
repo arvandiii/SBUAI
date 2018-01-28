@@ -9,6 +9,7 @@ import massim.javaagents.percept.resourceNode;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.Random;
 
 
 public class BasicAgent extends Agent {
@@ -23,7 +24,6 @@ public class BasicAgent extends Agent {
     double maxLat = 48.90;
     double walkLat = 0.006;
     double walkLon = 0.012;
-
 
 
     public BasicAgent(String name, MailService mailbox) {
@@ -92,6 +92,12 @@ public class BasicAgent extends Agent {
                 if (AP.getSelfInfo().getLastActionResult().equals("successful")) {
                     actions.poll();
                 }
+                if (AP.getSelfInfo().getLastActionResult().equals("useless")) {
+                    actions.poll();
+                }
+                if (AP.getSelfInfo().getLastActionResult().equals("failed_location")) {
+                    actions.poll();
+                }
                 break;
             case "gather":
                 if (AP.getSelfInfo().getLastActionResult().equals("successful")) {
@@ -150,8 +156,9 @@ public class BasicAgent extends Agent {
 
 
                     double stepsToChargingStation = nearestChargingStationDist / (sharedData.getRole(AP.getSelfInfo().getName()).getSpeed() * 0.2);
-                    if (stepsToChargingStation <
-                            (sharedData.getRole(AP.getSelfInfo().getName()).getBattery() - AP.getSelfInfo().getCharge()) / 5 &&
+                    if (AP.getSelfInfo().getCharge() > 10 &&
+                            stepsToChargingStation <
+                                    (sharedData.getRole(AP.getSelfInfo().getName()).getBattery() - AP.getSelfInfo().getCharge()) / 5 &&
                             AP.getSelfInfo().getCharge() > (stepsToChargingStation * 10)) {
                         if (nearestChargingStationDist < 0.0003) {
                             return new Action("charge");
@@ -213,21 +220,36 @@ public class BasicAgent extends Agent {
 
     private void calculateNextResearch() {
 
-        if ( maxLat -  researchCoordinates[0] < 0.01){
-            researchCoordinates[0] = maxLat - 0.005;
-            researchCoordinates[1] = maxLon - 0.005;
-        }
+        Random r = new Random();
 
-        if (getStepNumber() == 2) {
-            researchCoordinates[0] = maxLat - 0.005;
-            researchCoordinates[1] = maxLon - 0.005;
+        if (researchCoordinates[0] == 0 && researchCoordinates[1] == 0) {
+            if (r.nextBoolean()) {
+                researchCoordinates[0] = minLat + (minLat + 0.01 - minLat) * r.nextDouble();
+            } else {
+                researchCoordinates[0] = maxLat + (maxLat - 0.01 - maxLat) * r.nextDouble();
+            }
+            if (r.nextBoolean()) {
+                researchCoordinates[1] = minLon + (minLon + 0.01 - minLon) * r.nextDouble();
+            } else {
+                researchCoordinates[1] = maxLon + (maxLon - 0.01 - maxLon) * r.nextDouble();
+            }
         } else {
-
+            if (Math.abs(researchCoordinates[1] - AP.getSelfInfo().getLon()) < 0.003
+                    && Math.abs(researchCoordinates[0] - AP.getSelfInfo().getLat()) < 0.003) {
+                if (r.nextBoolean()) {
+                    researchCoordinates[0] = minLat + (minLat + 0.01 - minLat) * r.nextDouble();
+                } else {
+                    researchCoordinates[0] = maxLat + (maxLat - 0.01 - maxLat) * r.nextDouble();
+                }
+                if (r.nextBoolean()) {
+                    researchCoordinates[1] = minLon + (minLon + 0.01 - minLon) * r.nextDouble();
+                } else {
+                    researchCoordinates[1] = maxLon + (maxLon - 0.01 - maxLon) * r.nextDouble();
+                }
+            }
         }
 
     }
-
-
 
 
 }
